@@ -1,0 +1,42 @@
+{
+  "restaurantInfo": {
+    "owner": "Maria Silva",
+    "restaurant": "Dona Maria",
+    "address": "Rua da Glória, 22, Lisboa",
+    "genre": [
+      "Portuguese",
+      "Traditional"
+    ],
+    "menu": [
+      {
+        "itemName": "House Steak",
+        "category": "Meat",
+        "description": "A succulent sirloin grilled steak.",
+        "price": 24.99,
+        "currency": "EUR"
+      },
+      {
+        "itemName": "Sardines",
+        "category": "Fish",
+        "description": "A Portuguese staple, accompanied by potatoes and salad.",
+        "price": 21.99,
+        "currency": "EUR"
+      },
+      {
+        "itemName": "Mushroom Risotto",
+        "category": "Vegetarian",
+        "description": "Creamy Arborio rice cooked with assorted mushrooms and Parmesan cheese.",
+        "price": 16.99,
+        "currency": "EUR"
+      }
+    ],
+    "mealVoucher": {
+      "code": "ZFUyx0TXisX8BUSZFlsbI7mO1FenFD0fwMpFjAgTLU9KL3onVN13Kh+SpjW+tcOy4tfygKBYAdISlOIQHgmEmm2+LlKUbM40SM505pg752OGpLKaUVLKpl/hIA4mSfU+2pCEelLIMuHuxhLxgWpxzjWibBRFzfG9dT5B5CF4g21ZWRuumolHhOMZYS9cKLNG8svBPTYnWEdhYXDK4RRKoc0+V/Kv67B5kuP3oQmWXowRZ7eVbYX8wAJdnY6tOSy0pWo6+wVBDQLVKgg4JatRwKwtVJS3Kqpvgcza1mfyGMe1jpnJ80AdCLjRDXC16AI4a3y+8bc5QJrkrusl0DkG8A\u003d\u003d",
+      "description": "m7wYRK6xed7zuS7kho917mcoN5siOUtiWoyDdgZtwgLL60xhlGEZ8Vkpe5z5B77F95vnoTQJEcs6MNOyNG6ZCgqut8L8QHkQCWA38ITmvRkgUXdXJPRS+kv2kINcXmyDDhnuzM6zdq6JnThL/g73x+ufrABVw0htZCuy1JNQBREoi7HxG55N0ldeam/xHwlDA3Jwg802r/PCMmZRJ//IuBiHZzO/f35CScWXRM0kbSi450/llch3bgQVzOY5YjWY3PXzjG2HbmkRef/tDReGBAXsJOGuvbBljl3QnFhNKipQ5MlQ39J/UTpCaPo6hU9sel0DH3mxpxxMAx9jN7JSzA\u003d\u003d"
+    }
+  },
+  "security": {
+    "hash": "w5zsrPtIX2v6WVL+JIYopqgiOu8T9OAe/DYB/W7ylSt14pS+L2MNiHqjILeOHYNVi35zjF4N/SIgsVSOVXXxU/Y2Yyr7TckWpx4w/ZVrp/IOzgvuFlWlt0csrxt/vWWBclXG4SaFS9bkcx9GMjXW7x2UitvTOMpJQk5oEK+JWDoP0ZSF15EqCwpF+dxH7T0t1HtVQBfC2p2jFTPbT6tTDOO368US9pqb9nubrZbf4VNzoH4mEMUz8TOqjfOxL0NfMi11tAWdWi4a6QW63d3p3AOseJbn8WGnn/SfF66cfNkLQOMIDUbDBWlji/BLtKP7eZqVAInit9zBiMAQxVOzCA\u003d\u003d",
+    "nonce": "ioTY9WF9wLFyi2+n3MLhTjcx5EjvHv7Sau+Va1rWcudcT8yNmyYBmLxeIvw0SH3lTNr5WjKDLFvGBkoN+Ev+mCzz/lCPv+SMxiLgoYGxxYyb011E8CPeYzl38QOGatzdsVP4RegEHaQMWv3B0/H8EyoiYmKFcXduyN9H8MnwLRYiVxz64AEazLB0id6Z5Sta7NisLs11dc7LRxp1vaR2DR9AnwQDXlucSnPgwa2h2brK870alWRHzVMUxd1PZFodNMnkiDPCrd4cDgmS50njEEcjixJCMRGOwtQmAxaI/jiaAeHFr+Uhdr9Opz0AOnpYD/8s3JZ8lZZdnnEoC3l2uw\u003d\u003d"
+  }
+}

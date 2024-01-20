@@ -1,0 +1,42 @@
+{
+    "restaurantInfo": {
+      "owner": "Gorndo Remsey",
+      "restaurant": "Kitchen from hell",
+      "address": "Baker street, 221b, London",
+      "genre": ["Gourmet", "Steakhouse"],
+      "menu": [
+        {
+          "itemName": "Beef wellington",
+          "category": "Meat",
+          "description": "A delicious beef short rib surrounded by thin slices of prosciuto serrano, envolved by a finely chopped mushroom duxelle and encased in beautifully flaky puff pastry.",
+          "price": 49.99,
+          "currency": "GBP"
+        },
+        {
+          "itemName": "Lamb",
+          "category": "Meat",
+          "description": "Comes with sauce.",
+          "price": 30.00,
+          "currency": "GBP"
+        },
+        {
+          "itemName": "Shepard's pie",
+          "category": "Meat",
+          "description": "Just like me mum used to make.",
+          "price": 20.00,
+          "currency": "GBP"
+        },
+        {
+          "itemName": "Garlic Bread",
+          "category": "Entree",
+          "description": "Bread with garlic, exploding with flavour, beautiful.",
+          "price": 8.00,
+          "currency": "GBP"
+        }
+      ],
+      "mealVoucher": {
+        "code": "HALFOFF",
+        "description": "If bill is above 500£, you get half off one serving of garlic bread!."
+      }
+    }
+  }
