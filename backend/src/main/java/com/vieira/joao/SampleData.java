@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import sirs.a14.bombappetit.model.*;
-import sirs.a14.bombappetit.service.*;
+import com.vieira.joao.model.*;
+import com.vieira.joao.service.*;
 
 import java.util.Arrays;
 
