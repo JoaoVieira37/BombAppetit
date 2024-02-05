@@ -4,13 +4,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.g14</groupId>
-  <artifactId>g14</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <groupId>com.vieira.joao</groupId>
+  <artifactId>cryptographic-library</artifactId>
+  <version>1.0.0</version>
 
-  <name>g14</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <name>Cryptographic Library</name>
+  <description>The cryptographic library used in the security funtions</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

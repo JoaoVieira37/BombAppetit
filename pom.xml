@@ -10,7 +10,6 @@
         <version>3.2.0</version>
     </parent>
 
-
     <groupId>com.vieira.joao</groupId>
     <artifactId>BombAppetit</artifactId>
     <version>1.0.0</version>
@@ -22,6 +21,8 @@
 
     <modules>
         <module>backend</module>
+        <module>client</module>
+        <module>cryptographic-library</module>
     </modules>
 
 </project>
