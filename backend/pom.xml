@@ -7,12 +7,12 @@
     <parent>
         <groupId>com.vieira.joao</groupId>
         <artifactId>BombAppetit</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>backend</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <name>BombAppetit Backend Server</name>
     <description>The backend server implementation for the BombAppetit application.</description>

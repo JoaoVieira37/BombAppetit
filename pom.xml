@@ -13,7 +13,7 @@
 
     <groupId>com.vieira.joao</groupId>
     <artifactId>BombAppetit</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>BombAppetit</name>
     <description>The main BombAppetit project file.</description>
