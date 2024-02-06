@@ -3,27 +3,23 @@ package com.vieira.joao;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vieira.joao.model.AppUser;
 import com.vieira.joao.model.MealVoucher;
 import com.vieira.joao.model.RestaurantInfo;
 import com.vieira.joao.model.Review;
-import com.vieira.joao.responses.InfoResponse;
-import com.vieira.joao.responses.InfoResponseWrapper;
 import com.vieira.joao.responses.UserResponse;
 import com.vieira.joao.responses.UserResponseWrapper;
 import com.vieira.joao.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.vieira.joao.responses.*;
-import com.vieira.joao.service.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +40,6 @@ public class Controller {
         this.mealVoucherService = mealVoucherService;
     }
 
-    // TODO: info -> done
     // TODO: find/id -> should also return review after adding one / should make sure the id is valid
     // TODO: users -> done
     // TODO: review -> needs more testing
