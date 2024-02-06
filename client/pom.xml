@@ -129,23 +129,23 @@
                 <configuration>
                     <programs>
                         <program>
-                            <mainClass>com.g14.Check</mainClass>
+                            <mainClass>com.vieira.joao.Check</mainClass>
                             <name>check</name>
                         </program>
                         <program>
-                            <mainClass>com.g14.Unprotect</mainClass>
+                            <mainClass>com.vieira.joao.Unprotect</mainClass>
                             <name>unprotect</name>
                         </program>
                         <program>
-                            <mainClass>com.g14.SignReview</mainClass>
+                            <mainClass>com.vieira.joao.SignReview</mainClass>
                             <name>signReview</name>
                         </program>
                         <program>
-                            <mainClass>com.g14.VerifyClientJsonIntegrity</mainClass>
+                            <mainClass>com.vieira.joao.VerifyClientJsonIntegrity</mainClass>
                             <name>verify</name>
                         </program>
                         <program>
-                            <mainClass>com.g14.RSAkeyPairCreator</mainClass>
+                            <mainClass>com.vieira.joao.RSAkeyPairCreator</mainClass>
                             <name>createKey</name>
                         </program>
 

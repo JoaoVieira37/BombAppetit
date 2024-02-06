@@ -1,18 +1,6 @@
-package com.g14;
+package com.vieira.joao;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import java.io.*;
-import java.util.*;
 import java.security.*;
-import java.security.spec.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-
-import java.nio.file.Path; 
-import java.nio.file.Paths;
 
 public class VerifyClientJsonIntegrity{
 
