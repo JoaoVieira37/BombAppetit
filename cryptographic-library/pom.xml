@@ -133,15 +133,15 @@
 							<name>protect</name>
 						</program>
             <program>
-							<mainClass>com.g14.Check</mainClass>
+							<mainClass>com.vieira.joao.Check</mainClass>
 							<name>check</name>
 						</program>
             <program>
-							<mainClass>com.g14.Unprotect</mainClass>
+							<mainClass>com.vieira.joao.Unprotect</mainClass>
 							<name>unprotect</name>
 						</program>
             <program>
-							<mainClass>com.g14.RSAkeyPairCreator</mainClass>
+							<mainClass>com.vieira.joao.RSAkeyPairCreator</mainClass>
 							<name>createRSA</name>
 						</program>
             <program>

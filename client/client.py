@@ -4,8 +4,6 @@ import subprocess
 import time
 import os
 import urllib3
-#Suppress only the specific SubjectAltNameWarning
-urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 
 def printHelp():
     print("Available commands:")
@@ -92,13 +90,14 @@ def signJson(name, key):
     #runs java file SignReview.java, needs the following commands to work
     #mvn clean install
     #export PATH=$PATH:/media/sf_KALI_FOLDER/a14-joao-joao-miguel-dev/client/target/appassembler/bin
-    subprocess.run(["signReview", name, "info", key])
+    #subprocess.run(["./target/appassembler/bin/signReview.bat", name, "info", key])
+    os.system("C:\\Users\\jmigu\\Documents\\dev\\BombAppetit\\client\\target\\appassembler\\bin\\signReview.bat " + name + " info " + key)
 
 def unprotectJson(name,outputname, key, type):
     #runs java file Unprotect.java, needs the following commankeyds to work
     #mvn clean install
     #export PATH=$PATH:/media/sf_KALI_FOLDER/3333333333333333/a14-joao-joao-miguel/client/target/appassembler/bin
-    subprocess.run(["unprotect", name, outputname, key, "keys/serverPublic.pub", type])
+    subprocess.run(["C:\\Users\\jmigu\\Documents\\dev\\BombAppetit\\client\\target\\appassembler\\bin\\unprotect.bat", name, outputname, key, "keys/serverPublic.pub", type])
 
 def jsonDictToFile(dict,name):
     with open(name, 'w') as f:
@@ -139,7 +138,8 @@ def getUserPublicKey(username):
 
 #Execution start
 cert_path="server.crt"
-link = "https://BombAppetit:8443/"
+#link = "https://BombAppetit:8443/"
+link = "http://localhost:8443/"
 s = requests.Session()
 
 username = input("Username: ")
@@ -165,9 +165,11 @@ while(True):
             createFindJson("data.json", username)
             signJson("data.json", privateKey)
             jsonDict = jsonFileToDict("data.json")
+            print(jsonDict)
             headers = {'Accept': 'application/json'} #tells server to send json
             response = s.post(link + "find" + "/" + commandFull.split(" ")[1], json=jsonDict, headers=headers,verify=cert_path)
-    
+            
+
             #unencrypt and remove security
             jsonDictToFile(response.json(),"data.json")
             unprotectJson("data.json", "output.json", privateKey, "find")
