@@ -1,5 +1,6 @@
 package com.vieira.joao.service;
 
+import com.vieira.joao.ResponseJSONBuilder;
 import com.vieira.joao.repository.RestaurantInfoRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class RestaurantInfoService {
 
     public List<RestaurantInfo> findAllRestaurantInfo() {
         return restaurantInfoRepo.findAll();
+    }
+    public String findAllRestaurantInfoJson() {
+        return ResponseJSONBuilder.buildInfoResponse(findAllRestaurantInfo());
     }
 
     public RestaurantInfo findRestaurantInfoById(Integer id) {

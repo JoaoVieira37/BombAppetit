@@ -55,17 +55,10 @@ public class Controller {
 
     @GetMapping("/info")
     public ResponseEntity<String> getInfo() {
-        List<RestaurantInfo> restaurantInfoList = restaurantInfoService.findAllRestaurantInfo();
-        List<InfoResponse> infoResponseList = new ArrayList<>();
-        for (RestaurantInfo restaurantInfo : restaurantInfoList) {
-            infoResponseList.add(new InfoResponse(restaurantInfo.getId(), restaurantInfo.getRestaurant()));
-        }
-        InfoResponseWrapper infoResponseWrapper = new InfoResponseWrapper(infoResponseList);
-
-        Gson gson = new Gson();
-        String json = gson.toJson(infoResponseWrapper);
-
-        return ResponseEntity.ok().header("Content-Type", "application/json").body(json);
+        return ResponseEntity
+                .ok()
+                .header("Content-Type", "application/json")
+                .body(restaurantInfoService.findAllRestaurantInfoJson());
     }
 
     @PostMapping("/find/{id}")
