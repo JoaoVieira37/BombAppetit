@@ -1,5 +1,6 @@
 package com.vieira.joao.service;
 
+import com.vieira.joao.ResponseJSONBuilder;
 import com.vieira.joao.repository.UserRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,10 @@ public class AppUserService {
 
     public void deleteUserById(Integer id) {
         userRepo.deleteUserById(id);
+    }
+
+    public String findAllUsersJson() {
+        return ResponseJSONBuilder.buildUsersResponse(findAllUsers());
     }
 }
 

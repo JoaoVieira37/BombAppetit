@@ -119,17 +119,10 @@ public class Controller {
 
     @GetMapping("/users")
     public ResponseEntity<String> getUsers() {
-        List<AppUser> appUserList = appUserService.findAllUsers();
-        List<UserResponse> userResponseList = new ArrayList<>();
-        for (AppUser appUser : appUserList) {
-            userResponseList.add(new UserResponse(appUser.getId(), appUser.getUsername()));
-        }
-        UserResponseWrapper userResponseWrapper = new UserResponseWrapper(userResponseList);
-
-        Gson gson = new Gson();
-        String json = gson.toJson(userResponseWrapper);
-
-        return ResponseEntity.ok().body(json);
+        return ResponseEntity
+                .ok()
+                .header("Content-Type", "application/json")
+                .body(appUserService.findAllUsersJson());
     }
 
     /*@GetMapping("/reviews")
