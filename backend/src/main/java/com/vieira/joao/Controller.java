@@ -65,7 +65,7 @@ public class Controller {
         Gson gson = new Gson();
         String json = gson.toJson(infoResponseWrapper);
 
-        return ResponseEntity.ok().body(json);
+        return ResponseEntity.ok().header("Content-Type", "application/json").body(json);
     }
 
     @PostMapping("/find/{id}")
