@@ -81,7 +81,9 @@ public class Controller {
 
     @PostMapping("/add/review")
     public ResponseEntity<String> addReview(@RequestBody String json) throws Exception {
-        System.out.println(json);
+
+        JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
+
         AuxFunctions.stringToJsonFile(json, "data.json");
 
         // Parse the JSON to get the username
@@ -93,7 +95,7 @@ public class Controller {
         // Ir buscar o path da key a DB
         String publicKeyPath = appUserService.findUserByUsername(username).getPublicKey();
 
-        if (VerifyClientJsonIntegrity.verify("data.json", publicKeyPath)) {
+        if (VerifyClientJsonIntegrity.verify(requestBody, publicKeyPath)) {
             String reviewText = jsonNode.get("info").get("review").asText();
             Integer rating = jsonNode.get("info").get("rating").asInt();
 
@@ -122,7 +124,9 @@ public class Controller {
 
     @PostMapping("/vouchers")
     public ResponseEntity<String> getVouchers(@RequestBody String json) throws Exception {
-        System.out.println(json);
+
+        JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
+
         AuxFunctions.stringToJsonFile(json, "data.json");
 
         ObjectMapper mapper = new ObjectMapper();
@@ -134,7 +138,7 @@ public class Controller {
         List<MealVoucher> mealVoucher = mealVoucherService.findAllMealVouchersByUser(username);
 
 
-        if (VerifyClientJsonIntegrity.verify("data.json", publicPathKey)) {
+        if (VerifyClientJsonIntegrity.verify(requestBody, publicPathKey)) {
 
             SaveJson.saveMealVoucherListAsJson(mealVoucher);
 
@@ -166,14 +170,16 @@ public class Controller {
 
     @PostMapping("/give")
     public ResponseEntity<String> giveVoucher(@RequestBody String json) throws Exception {
-        System.out.println(json);
+
+        JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
+
         AuxFunctions.stringToJsonFile(json, "data.json");
 
         String username = AuxFunctions.getFieldFromJson("info", "username", "data.json");
         AppUser user = appUserService.findUserByUsername(username);
         String keypath = user.getPublicKey();
 
-        if (VerifyClientJsonIntegrity.verify("data.json", keypath)) {
+        if (VerifyClientJsonIntegrity.verify(requestBody, keypath)) {
             String targetusername = AuxFunctions.getFieldFromJson("info", "targetuser", "data.json");
             String voucherId = AuxFunctions.getFieldFromJson("info", "voucherID", "data.json");
             Integer vid = Integer.valueOf(voucherId);

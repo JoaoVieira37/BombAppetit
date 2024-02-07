@@ -65,7 +65,7 @@ public class RestaurantInfoService {
 
 
         // TODO: Change the verify2 to verify after fixing all the methods relying on verify
-        if (!VerifyClientJsonIntegrity.verify2(requestBody, keyPath)) {
+        if (!VerifyClientJsonIntegrity.verify(requestBody, keyPath)) {
             return "{\"ERROR\":\"Nonce or Timestamp do not match\"}";
         }
 

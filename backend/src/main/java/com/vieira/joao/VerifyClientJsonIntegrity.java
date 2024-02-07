@@ -20,24 +20,7 @@ import java.util.Date;
 
 public class VerifyClientJsonIntegrity {
 
-    public static boolean verify(String JSONname, String publicKeyName) throws Exception {
-        //get client public key
-
-        PublicKey publicKey = AuxFunctions.getPublicKey(publicKeyName);
-
-        //decrypt hash
-        String hash = AuxFunctions.decryptHashFromJson(JSONname, publicKey);
-
-        //check hash value
-        boolean isHash = AuxFunctions.isClientHashValid(hash, JSONname, "info");
-
-        //check timestamp
-        boolean isTime = AuxFunctions.isClientTimestampValid(JSONname, "info");
-
-        return isTime && isHash;
-    }
-
-    public static boolean verify2(JsonObject json, String publicKeyName) throws Exception {
+    public static boolean verify(JsonObject json, String publicKeyName) throws Exception {
 
         //get client public key
         PublicKey publicKey = AuxFunctions.getPublicKey(publicKeyName);
@@ -49,7 +32,7 @@ public class VerifyClientJsonIntegrity {
         return isClientHashValid(hash, json, "info") && isClientTimestampValid(json, "info");
     }
 
-    public static String decryptHashFromJson(JsonObject json, PublicKey key) {
+    private static String decryptHashFromJson(JsonObject json, PublicKey key) {
 
         JsonObject securityObject = (JsonObject) json.get("security");
         String encryptedHash = securityObject.get("hash").getAsString();
@@ -75,7 +58,7 @@ public class VerifyClientJsonIntegrity {
         return null;
     }
 
-    public static boolean isClientHashValid(String hash, JsonObject json, String field) throws Exception {
+    private static boolean isClientHashValid(String hash, JsonObject json, String field) throws Exception {
 
         final String DIGEST_ALGO = "SHA-256";
 
@@ -95,7 +78,7 @@ public class VerifyClientJsonIntegrity {
 
     }
 
-    public static boolean isClientTimestampValid(JsonObject json, String field) {
+    private static boolean isClientTimestampValid(JsonObject json, String field) {
 
         String timestamp = json.get(field).getAsJsonObject().get("timestamp").getAsString();
 
