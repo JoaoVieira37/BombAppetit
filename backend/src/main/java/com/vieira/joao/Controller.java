@@ -2,6 +2,7 @@ package com.vieira.joao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.DecimalUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -72,80 +73,9 @@ public class Controller {
 
     @PostMapping("/find/{id}")
     public ResponseEntity<String> getRestaurantInfo(@PathVariable("id") Integer id, @RequestBody String json) throws Exception {
-
-        Gson gson = new Gson();
-        JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
-
-        /*
-         *
-         * {"info":
-         * {
-         * "username":"user1",
-         * "timestamp":"1707237363417"
-         * }
-         * }
-         *
-         * */
-
-        AuxFunctions.stringToJsonFile(json, "data.json");
-
-        // Get the username from the request body
-        String username = requestBody.getAsJsonObject("info").get("username").getAsString();
-        // Get the user with username from the db
-        AppUser user = appUserService.findUserByUsername(username);
-        // Get the corresponding key path
-        String keyPath = user.getPublicKey();
-
-        // What does this do?
-        if (!VerifyClientJsonIntegrity.verify("data.json", keyPath)) {
-            return ResponseEntity.ok().body("{\"ERROR\":\"Nonce or Timestamp do not match\"}");
-        }
-
-        //Files.deleteIfExists(Paths.get("data.json"));
-
-        RestaurantInfo restaurantInfo = restaurantInfoService.findRestaurantInfoById(id);
-
-        JsonObject jsonObject = new JsonObject();
-
-        JsonObject restaurantInfoObject = JsonParser.parseString(ResponseJSONBuilder.buildRestaurantInfoResponse(restaurantInfo, username)).getAsJsonObject();
-
-        Debug.debug(restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString());
-
-        /*if (mealVoucherService.doesUserHaveVoucherForRestaurant(username,
-                restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString())){
-            Integer i = mealVoucherService.getVoucherIdForUserAndRestaurant(username,restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString());
-            System.out.println(i);
-            MealVoucher mv = mealVoucherService.findMealVoucherById(i);
-            JsonObject mvjson = new JsonParser().parse(mv.toString()).getAsJsonObject();
-            restaurantInfoObject.add("mealVoucher", mvjson);
-        }*/
-
-        /*if (reviewService.existReviewsByRestaurant(restaurantInfoObject.get("restaurant").getAsString())){
-            Debug.debug(restaurantInfo.getReviews().size());
-            List<Review> reviews = reviewService.findAllReviewsByRestaurant(restaurantInfoObject.get("restaurant").getAsString());
-            System.out.println(reviews.toString());
-            JsonArray reviewArray = new JsonArray();
-            for (Review review : reviews) {
-                JsonObject reviewObject = new JsonObject();
-                reviewObject.addProperty("user", review.getAppUser().getUsername());
-                reviewObject.addProperty("restaurant", review.getRestaurantInfo().getRestaurant());
-                reviewObject.addProperty("rating", review.getRating());
-                reviewObject.addProperty("review", review.getReview());
-                reviewArray.add(reviewObject);
-            }
-            restaurantInfoObject.add("reviews", reviewArray);
-        }*/
-        jsonObject.add("restaurantInfo", restaurantInfoObject);
-        AuxFunctions.stringToJsonFile(jsonObject.toString(), "data.json");
-        Protect.protectFind("data.json","data2.json",keyPath,"keys/serverPrivate.key");
-        String content = new String(Files.readAllBytes(Paths.get("data2.json")));
-        System.out.println(content); 
-
-        //DELETE DATA AND DATA2
-        Files.deleteIfExists(Paths.get("data.json"));
-        Files.deleteIfExists(Paths.get("data2.json"));
-
-        return ResponseEntity.ok().body(content);
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(restaurantInfoService.getRestaurantInfo(id, json));
 
     }
 
