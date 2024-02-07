@@ -10,8 +10,6 @@ import com.vieira.joao.model.AppUser;
 import com.vieira.joao.model.MealVoucher;
 import com.vieira.joao.model.RestaurantInfo;
 import com.vieira.joao.model.Review;
-import com.vieira.joao.responses.UserResponse;
-import com.vieira.joao.responses.UserResponseWrapper;
 import com.vieira.joao.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -41,8 +38,6 @@ public class Controller {
     }
 
     // TODO: find/id -> should also return review after adding one / should make sure the id is valid
-    // TODO: users -> done
-    // TODO: review -> needs more testing
     // TODO: vouchers -> to know the vouchers available to give to another user / should send encrypted json - client should decrypt
     // TODO: give/id -> change app user of voucher with id id
     // TODO: Delete temporary files left behind by the functions
@@ -56,19 +51,53 @@ public class Controller {
                 .body(restaurantInfoService.findAllRestaurantInfoJson());
     }
 
+    @GetMapping("/users")
+    public ResponseEntity<String> getUsers() {
+        return ResponseEntity
+                .ok()
+                .header("Content-Type", "application/json")
+                .body(appUserService.findAllUsersJson());
+    }
+
+    // TODO: Reviews (GET Method)
+    /*@GetMapping("/reviews")
+    public ResponseEntity<String> getReviews() {
+        List<Review> reviewList = reviewService.findAllReviewsByRestaurant("Dona Maria");
+        ReviewsResponse response = new ReviewsResponse(reviewList);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(response);
+        return ResponseEntity.ok().body(json);
+    }*/
+
     @PostMapping("/find/{id}")
     public ResponseEntity<String> getRestaurantInfo(@PathVariable("id") Integer id, @RequestBody String json) throws Exception {
-        
+
+        Gson gson = new Gson();
+        JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
+
+        /*
+         *
+         * {"info":
+         * {
+         * "username":"user1",
+         * "timestamp":"1707237363417"
+         * }
+         * }
+         *
+         * */
 
         AuxFunctions.stringToJsonFile(json, "data.json");
 
-        String username = AuxFunctions.getFieldFromJson("info", "username", "data.json");
-
+        // Get the username from the request body
+        String username = requestBody.getAsJsonObject("info").get("username").getAsString();
+        // Get the user with username from the db
         AppUser user = appUserService.findUserByUsername(username);
-        String keypath = user.getPublicKey();
-        System.out.println(keypath);
+        // Get the corresponding key path
+        String keyPath = user.getPublicKey();
 
-        if (!VerifyClientJsonIntegrity.verify("data.json", keypath)) {
+        // What does this do?
+        if (!VerifyClientJsonIntegrity.verify("data.json", keyPath)) {
             return ResponseEntity.ok().body("{\"ERROR\":\"Nonce or Timestamp do not match\"}");
         }
 
@@ -76,21 +105,24 @@ public class Controller {
 
         RestaurantInfo restaurantInfo = restaurantInfoService.findRestaurantInfoById(id);
 
-        Gson gson = new Gson();
         JsonObject jsonObject = new JsonObject();
 
-        JsonObject jsonObj = new JsonParser().parse(restaurantInfo.toString()).getAsJsonObject();
+        JsonObject restaurantInfoObject = JsonParser.parseString(ResponseJSONBuilder.buildRestaurantInfoResponse(restaurantInfo, username)).getAsJsonObject();
 
-        if (mealVoucherService.doesUserHaveVoucherForRestaurant(username,jsonObj.get("restaurant").getAsString())){
-            Integer i = mealVoucherService.getVoucherIdForUserAndRestaurant(username,jsonObj.get("restaurant").getAsString());
+        Debug.debug(restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString());
+
+        /*if (mealVoucherService.doesUserHaveVoucherForRestaurant(username,
+                restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString())){
+            Integer i = mealVoucherService.getVoucherIdForUserAndRestaurant(username,restaurantInfoObject.getAsJsonObject("restaurantInfo").get("restaurant").getAsString());
             System.out.println(i);
             MealVoucher mv = mealVoucherService.findMealVoucherById(i);
             JsonObject mvjson = new JsonParser().parse(mv.toString()).getAsJsonObject();
-            jsonObj.add("mealVoucher", mvjson);
-        }
+            restaurantInfoObject.add("mealVoucher", mvjson);
+        }*/
 
-        if (reviewService.existReviewsByRestaurant(jsonObj.get("restaurant").getAsString())){
-            List<Review> reviews = reviewService.findAllReviewsByRestaurant(jsonObj.get("restaurant").getAsString());
+        /*if (reviewService.existReviewsByRestaurant(restaurantInfoObject.get("restaurant").getAsString())){
+            Debug.debug(restaurantInfo.getReviews().size());
+            List<Review> reviews = reviewService.findAllReviewsByRestaurant(restaurantInfoObject.get("restaurant").getAsString());
             System.out.println(reviews.toString());
             JsonArray reviewArray = new JsonArray();
             for (Review review : reviews) {
@@ -101,11 +133,11 @@ public class Controller {
                 reviewObject.addProperty("review", review.getReview());
                 reviewArray.add(reviewObject);
             }
-            jsonObj.add("reviews", reviewArray);
-        }
-        jsonObject.add("restaurantInfo", jsonObj);
+            restaurantInfoObject.add("reviews", reviewArray);
+        }*/
+        jsonObject.add("restaurantInfo", restaurantInfoObject);
         AuxFunctions.stringToJsonFile(jsonObject.toString(), "data.json");
-        Protect.protectFind("data.json","data2.json",keypath,"keys/serverPrivate.key");
+        Protect.protectFind("data.json","data2.json",keyPath,"keys/serverPrivate.key");
         String content = new String(Files.readAllBytes(Paths.get("data2.json")));
         System.out.println(content); 
 
@@ -116,24 +148,6 @@ public class Controller {
         return ResponseEntity.ok().body(content);
 
     }
-
-    @GetMapping("/users")
-    public ResponseEntity<String> getUsers() {
-        return ResponseEntity
-                .ok()
-                .header("Content-Type", "application/json")
-                .body(appUserService.findAllUsersJson());
-    }
-
-    /*@GetMapping("/reviews")
-    public ResponseEntity<String> getReviews() {
-        List<Review> reviewList = reviewService.findAllReviewsByRestaurant("Dona Maria");
-        ReviewsResponse response = new ReviewsResponse(reviewList);
-
-        Gson gson = new Gson();
-        String json = gson.toJson(response);
-        return ResponseEntity.ok().body(json);
-    }*/
 
     @PostMapping("/add/review")
     public ResponseEntity<String> addReview(@RequestBody String json) throws Exception {
@@ -163,6 +177,8 @@ public class Controller {
             review.setAppUser(user);
             review.setRating(rating);
             reviewService.addReview(review);
+            restaurantInfo.addReview(review);
+            restaurantInfoService.updateRestaurantInfo(restaurantInfo);
             Files.deleteIfExists(Path.of("data.json"));
             String response = "Review added successfully";
             return new ResponseEntity<>(response, HttpStatus.OK);
