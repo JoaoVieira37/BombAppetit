@@ -63,11 +63,9 @@ public class RestaurantInfoService {
         AppUser user = appUserService.findUserByUsername(username);
         String keyPath = user.getPublicKey();
 
-        // Store the request body to a file to be able to be analyzed
-        // TODO: Remove the need for the file
-        AuxFunctions.stringToJsonFile(request, "data.json");
-        // What does this do?
-        if (!VerifyClientJsonIntegrity.verify("data.json", keyPath)) {
+
+        // TODO: Change the verify2 to verify after fixing all the methods relying on verify
+        if (!VerifyClientJsonIntegrity.verify2(requestBody, keyPath)) {
             return "{\"ERROR\":\"Nonce or Timestamp do not match\"}";
         }
 
@@ -82,12 +80,13 @@ public class RestaurantInfoService {
 
 
         Protect.protectFind("data.json","data2.json",keyPath,"keys/serverPrivate.key");
-        Path data2 = Paths.get("data2.json");
-        String content = new String(Files.readAllBytes(data2));
+        String content = new String(Files.readAllBytes(Paths.get("data2.json")));
 
         //DELETE DATA AND DATA2
         Files.deleteIfExists(Paths.get("data.json"));
-        Files.deleteIfExists(data2);
+        Files.deleteIfExists(Paths.get("data2.json"));
+
+
 
         return content;
     }
