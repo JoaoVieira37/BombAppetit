@@ -280,6 +280,9 @@ public class AuxFunctions {
         MessageDigest messageDigest = MessageDigest.getInstance(DIGEST_ALGO);
         messageDigest.update(bytes);
         byte[] digestBytes = messageDigest.digest();
+
+        // TODO: Return just the bytes
+        // The base64 encoded is encrypted and then encoded again (double 64 encoding)
         return Base64.getEncoder().encodeToString(digestBytes);
     }
 
