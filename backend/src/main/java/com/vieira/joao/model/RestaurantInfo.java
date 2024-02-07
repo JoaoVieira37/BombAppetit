@@ -61,6 +61,8 @@ public class RestaurantInfo implements Serializable {
         this.reviews = reviews;
     }
 
+    public void addReview(Review review) { this.reviews.add(review); }
+
     public List<MealVoucher> getMealVoucher() {
         return mealVoucher;
     }
