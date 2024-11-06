@@ -1,24 +1,27 @@
 package com.vieira.joao;
 
 import com.google.gson.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.crypto.Cipher;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.Base64;
-import java.util.Date;
+import java.io.*;
+import java.util.*;
+import java.security.*;
+import javax.crypto.*;
+
+import static com.vieira.joao.AuxFunctions.*;
+import static com.vieira.joao.AuxFunctions.addSecurity;
 
 public class Protect {
 
+    private static final Logger logger = LoggerFactory.getLogger(Protect.class);
+
     public static void main(String[] args) throws Exception {
+
         // Check arguments
         if (args.length < 4) {
             System.err.println("Argument(s) missing!");
-            System.err.print("Usage: java Protect inputJSONfile outputJSONfile clientPublicKey serverPrivateKey");
+            System.err.printf("Usage: java Protect inputJSONfile outputJSONfile clientPublicKey serverPrivateKey");
             return;
         }
 
@@ -37,6 +40,7 @@ public class Protect {
         boolean voucherexists = AuxFunctions.voucherExists(inputJSONname);
 
         if (!voucherexists) {
+            logger.info("Voucher does not exist");
             AuxFunctions.copyFileUsingStream(inputJSONname, outputJSONname);
             String hash = AuxFunctions.getRestaurantInfoHash(outputJSONname);
             JsonObject digitalSignature = AuxFunctions.createJsonDigitalSignatureHash(hash, serverPrivateKey);
@@ -45,7 +49,7 @@ public class Protect {
         }
 
         //create copy of input json
-        AuxFunctions.copyFileUsingStream(inputJSONname, outputJSONname);
+        AuxFunctions.copyFileUsingStream(inputJSONname,outputJSONname);
 
         //encrypt fields of voucher on new json
         AuxFunctions.encryptVoucherPublicKey(outputJSONname, clientPublicKey);
@@ -53,8 +57,11 @@ public class Protect {
         //create cryptographic hash
         String hash = AuxFunctions.getRestaurantInfoHash(outputJSONname);
 
+        //create nonce and add to file
+        String nonce = AuxFunctions.createAndSaveNonce(nonceFile);
+
         //create digital signature JSON
-        JsonObject digitalSignature = AuxFunctions.createJsonDigitalSignatureHash(hash, serverPrivateKey);
+        JsonObject digitalSignature = AuxFunctions.createJSONDigitalSignature(hash, nonce, serverPrivateKey);
 
         //add digest to json
         AuxFunctions.addSecurity(outputJSONname, digitalSignature);
@@ -62,10 +69,10 @@ public class Protect {
 
     public static void protectVouchers(String jsonName, String jsonName2, String publicKeyPath) throws Exception {
 
-        PublicKey clientPublicKey = AuxFunctions.getPublicKey(publicKeyPath);
-        PrivateKey serverPrivateKey = AuxFunctions.getPrivateKey("keys/serverPrivate.key");
+        PublicKey clientPublicKey = getPublicKey(publicKeyPath);
+        PrivateKey serverPrivateKey = getPrivateKey("keys/serverPrivate.key");
 
-        AuxFunctions.copyFileUsingStream(jsonName, jsonName2);
+        copyFileUsingStream(jsonName, jsonName2);
 
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, clientPublicKey);
@@ -78,7 +85,6 @@ public class Protect {
             for (JsonElement element : voucherList) {
                 JsonObject object = element.getAsJsonObject();
                 String unencryptedCode = object.get("code").getAsString();
-                System.out.println(unencryptedCode);
                 byte[] encryptedCodeBytes = cipher.doFinal(unencryptedCode.getBytes());
                 String encryptedB64Code = Base64.getEncoder().encodeToString(encryptedCodeBytes);
 
@@ -110,13 +116,14 @@ public class Protect {
             Cipher newCipher = Cipher.getInstance("RSA");
             newCipher.init(Cipher.ENCRYPT_MODE, serverPrivateKey);
 
+            // TODO: Remove base64 encoding before encryption
             byte[] encryptedHashBytes = newCipher.doFinal(mealVouchersHash.getBytes());
             String encryptedB64Hash = Base64.getEncoder().encodeToString(encryptedHashBytes);
 
             JsonObject digitalSignature = new JsonObject();
             digitalSignature.addProperty("hash", encryptedB64Hash);
 
-            AuxFunctions.addSecurity(jsonName2, digitalSignature);
+            addSecurity(jsonName2, digitalSignature);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -126,37 +133,37 @@ public class Protect {
     }
     public static void protectFind(String inputJSONname, String outputJSONname, String clientPublicKeyName, String serverPrivateKeyName) throws Exception{
         //get client public and server private keys
-        PrivateKey serverPrivateKey = AuxFunctions.getPrivateKey(serverPrivateKeyName);
-        PublicKey clientPublicKey = AuxFunctions.getPublicKey(clientPublicKeyName);
+        PrivateKey serverPrivateKey = getPrivateKey(serverPrivateKeyName);
+        PublicKey clientPublicKey = getPublicKey(clientPublicKeyName);
 
         //check if voucher exists, if not exit
-        boolean voucherexists = AuxFunctions.voucherExists(inputJSONname);
+        boolean voucherexists = voucherExists(inputJSONname);
 
         if (!voucherexists) {
-            AuxFunctions.copyFileUsingStream(inputJSONname, outputJSONname);
-            AuxFunctions.createTimestamp(outputJSONname,"restaurantInfo");
-            String hash = AuxFunctions.getRestaurantInfoHash(outputJSONname);
-            JsonObject digitalSignature = AuxFunctions.createJsonDigitalSignatureHash(hash, serverPrivateKey);
-            AuxFunctions.addSecurity(outputJSONname, digitalSignature);
+            copyFileUsingStream(inputJSONname, outputJSONname);
+            createTimestamp(outputJSONname,"restaurantInfo");
+            String hash = getRestaurantInfoHash(outputJSONname);
+            JsonObject digitalSignature = createJsonDigitalSignatureHash(hash, serverPrivateKey);
+            addSecurity(outputJSONname, digitalSignature);
             return;
         }
 
         //create copy of input json
-        AuxFunctions.copyFileUsingStream(inputJSONname, outputJSONname);
+        copyFileUsingStream(inputJSONname, outputJSONname);
 
         //create timestamp
-        AuxFunctions.createTimestamp(outputJSONname,"restaurantInfo");
+        createTimestamp(outputJSONname,"restaurantInfo");
 
         //encrypt fields of voucher on new json
-        AuxFunctions.encryptVoucherPublicKey(outputJSONname, clientPublicKey);
+        encryptVoucherPublicKey(outputJSONname, clientPublicKey);
 
         //create cryptographic hash
-        String hash = AuxFunctions.getRestaurantInfoHash(outputJSONname);
+        String hash = getRestaurantInfoHash(outputJSONname);
 
         //create digital signature JSON
-        JsonObject digitalSignature = AuxFunctions.createJsonDigitalSignatureHash(hash, serverPrivateKey);
+        JsonObject digitalSignature = createJsonDigitalSignatureHash(hash, serverPrivateKey);
 
         //add digest to json
-        AuxFunctions.addSecurity(outputJSONname, digitalSignature);
+        addSecurity(outputJSONname, digitalSignature);
     }
 }

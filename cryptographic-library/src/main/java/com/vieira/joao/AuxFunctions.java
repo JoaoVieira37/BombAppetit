@@ -1,49 +1,53 @@
 package com.vieira.joao;
 
+import com.google.gson.*;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import javax.crypto.Cipher;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.*;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
+import java.security.spec.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+
+import java.nio.file.Path; 
+import java.nio.file.Paths;
 
 public class AuxFunctions {
 
     public static PublicKey getPublicKey(String clientPublicKeyName) throws Exception {
-        FileInputStream pubFis = new FileInputStream(clientPublicKeyName);
-        byte[] pubEncoded = new byte[pubFis.available()];
-        pubFis.read(pubEncoded);
-        pubFis.close();
-        /* Generate public key. */
-        X509EncodedKeySpec kspec = new X509EncodedKeySpec(pubEncoded);
+        FileInputStream publicKeyFileStream = new FileInputStream(clientPublicKeyName);
+        byte[] publicKeyEncoded = new byte[publicKeyFileStream.available()];
 
+        publicKeyFileStream.read(publicKeyEncoded); // Reads from input stream into byte[]
+        publicKeyFileStream.close();
+
+        /* Generate public key. */
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyEncoded);
+        
         KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePublic(kspec);
+        return kf.generatePublic(keySpec);
     }
 
-    public static PrivateKey getPrivateKey(String serverPrivateKeyName) throws Exception {
-        FileInputStream priFis = new FileInputStream(serverPrivateKeyName);
-        byte[] priEncoded = new byte[priFis.available()];
-        priFis.read(priEncoded);
-        priFis.close();
+    public static PrivateKey getPrivateKey(String serverPrivateKeyName) throws Exception{
+        FileInputStream privateKeyFileStream = new FileInputStream(serverPrivateKeyName);
+        byte[] privateKeyEncoded = new byte[privateKeyFileStream.available()];
+
+        privateKeyFileStream.read(privateKeyEncoded);
+        privateKeyFileStream.close();
 
         /* Generate private key. */
-        PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(priEncoded);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyEncoded);
+
         KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(ks);
+        return kf.generatePrivate(keySpec);
     }
 
-    public static boolean voucherExists(String filename) throws Exception {
+    public static boolean voucherExists(String filename) throws Exception{
         try (FileReader fileReader = new FileReader(filename)) {
             Gson gson = new Gson();
             JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
@@ -73,7 +77,7 @@ public class AuxFunctions {
         }
     }
 
-    public static void encryptVoucherPublicKey(String filename, PublicKey key) throws Exception {
+    public static void encryptVoucherPublicKey(String filename, PublicKey key) throws Exception{
         JsonObject rootJson;
         try (FileReader fileReader = new FileReader(filename)) {
             Gson gson = new Gson();
@@ -103,7 +107,7 @@ public class AuxFunctions {
         }
     }
 
-    public static void decryptVoucherPrivateKey(String filename, PrivateKey key) throws Exception {
+    public static void decryptVoucherPrivateKey(String filename, PrivateKey key) throws Exception{
         FileReader fileReader = new FileReader(filename);
         Gson gson = new Gson();
         JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
@@ -131,7 +135,7 @@ public class AuxFunctions {
         }
     }
 
-    public static String getRestaurantInfoHash(String filename) throws Exception {
+    public static String getRestaurantInfoHash(String filename) throws Exception{
         final String DIGEST_ALGO = "SHA-256";
 
         try (FileReader fileReader = new FileReader(filename)) {
@@ -147,7 +151,7 @@ public class AuxFunctions {
         }
     }
 
-    public static boolean isHashValid(String hash, String filename) throws Exception {
+    public static boolean isHashValid(String hash, String filename) throws Exception{
         final String DIGEST_ALGO = "SHA-256";
 
         FileReader fileReader = new FileReader(filename);
@@ -158,11 +162,11 @@ public class AuxFunctions {
         MessageDigest messageDigest = MessageDigest.getInstance(DIGEST_ALGO);
         messageDigest.update(bytes);
         byte[] digestBytes = messageDigest.digest();
-
+        
         return Base64.getEncoder().encodeToString(digestBytes).equals(hash);
     }
 
-    public static String createAndSaveNonce(String filename) throws Exception {
+    public static String createAndSaveNonce(String filename) throws Exception{
         byte[] nonce = new byte[128];
         new SecureRandom().nextBytes(nonce);
         String nonceB64 = Base64.getEncoder().encodeToString(nonce);
@@ -176,7 +180,7 @@ public class AuxFunctions {
         return nonceB64;
     }
 
-    public static JsonObject createJSONDigitalSignature(String hash, String Nonce, PrivateKey key) throws Exception {
+    public static JsonObject createJSONDigitalSignature(String hash, String Nonce, PrivateKey key) throws Exception{
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -185,7 +189,7 @@ public class AuxFunctions {
 
         byte[] encryptedNonceBytes = cipher.doFinal(Nonce.getBytes());
         String encryptedB64Nonce = Base64.getEncoder().encodeToString(encryptedNonceBytes);
-
+        
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("hash", encryptedB64Hash);
         jsonObject.addProperty("nonce", encryptedB64Nonce);
@@ -194,7 +198,7 @@ public class AuxFunctions {
 
     }
 
-    public static void addSecurity(String filename, JsonObject jsonObject) throws Exception {
+    public static void addSecurity(String filename, JsonObject jsonObject) throws Exception{
         JsonObject rootJson;
         try (FileReader fileReader = new FileReader(filename)) {
             Gson gson = new Gson();
@@ -208,7 +212,7 @@ public class AuxFunctions {
         }
     }
 
-    public static void removeSecurity(String filename) throws Exception {
+    public static void removeSecurity(String filename) throws Exception{
         FileReader fileReader = new FileReader(filename);
         Gson gson = new Gson();
         JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
@@ -220,14 +224,14 @@ public class AuxFunctions {
         }
     }
 
-    public static boolean isProtected(String filename) throws Exception {
+    public static boolean isProtected(String filename) throws Exception{
         FileReader fileReader = new FileReader(filename);
         Gson gson = new Gson();
         JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
         return rootJson.has("security");
     }
 
-    public static List<String> decryptSecurity(String filename, PublicKey key) throws Exception {
+    public static List<String> decryptSecurity(String filename, PublicKey key) throws Exception{
         FileReader fileReader = new FileReader(filename);
         Gson gson = new Gson();
         JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
@@ -252,20 +256,20 @@ public class AuxFunctions {
         return list;
     }
 
-    public static boolean isNonceValid(String nonce, String noncefilename) throws Exception {
+    public static boolean isNonceValid(String nonce, String noncefilename) throws Exception{
 
         BufferedReader reader = new BufferedReader(new FileReader(noncefilename));
-        String line = reader.readLine();
+		String line = reader.readLine();
 
-        while (line != null) {
-
-            if (nonce.equals(line)) {
+		while (line != null) {
+			
+            if (nonce.equals(line)){
                 return true;
             }
             line = reader.readLine();
-        }
+		}
 
-        reader.close();
+		reader.close();
 
         return false;
     }

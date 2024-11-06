@@ -1,15 +1,11 @@
 package com.vieira.joao;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,23 +14,28 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class VerifyClientJsonIntegrity {
 
-    public static boolean verify(JsonObject json, String publicKeyName) throws Exception {
+    private static final Logger logger = LoggerFactory.getLogger(VerifyClientJsonIntegrity.class);
+
+    public static boolean verify(JsonObject json, String publicKeyPath) throws Exception {
 
         //get client public key
-        PublicKey publicKey = AuxFunctions.getPublicKey(publicKeyName);
+        PublicKey publicKey = AuxFunctions.getPublicKey(publicKeyPath);
 
         //decrypt hash
-        String hash = decryptHashFromJson(json, publicKey);
+        byte[] hash = decryptHashFromJson(json, publicKey);
 
         // TODO: Remove the "info" argument (After fixing the requestBody structure)
         return isClientHashValid(hash, json, "info") && isClientTimestampValid(json, "info");
     }
 
-    private static String decryptHashFromJson(JsonObject json, PublicKey key) {
+    private static byte[] decryptHashFromJson(JsonObject json, PublicKey key) {
 
-        JsonObject securityObject = (JsonObject) json.get("security");
+        JsonObject securityObject = json.get("security").getAsJsonObject();
         String encryptedHash = securityObject.get("hash").getAsString();
 
         try {
@@ -42,27 +43,27 @@ public class VerifyClientJsonIntegrity {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, key);
 
-            // Decodes from base64 to bytes the deciphers the bytes
+            // Decodes from base64 to bytes then deciphers the bytes
             byte[] unencryptedHashBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedHash.getBytes()));
 
             // TODO: Fix this second decoding in the library code
-            byte[] unencryptedHash = Base64.getDecoder().decode(unencryptedHashBytes);
+            // byte[] unencryptedHash = Base64.getDecoder().decode(unencryptedHashBytes);
 
-            return Base64.getEncoder().encodeToString(unencryptedHash);
+            return unencryptedHashBytes;
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
-            System.out.println("[ERROR] " + e.getMessage());
+            logger.error(e.getMessage());
         }
 
         return null;
     }
 
-    private static boolean isClientHashValid(String hash, JsonObject json, String field) throws Exception {
+    private static boolean isClientHashValid(byte[] hash, JsonObject json, String field) throws Exception {
 
         final String DIGEST_ALGO = "SHA-256";
 
-        Debug.debug(json.toString());
+        logger.debug(json.toString());
 
         JsonObject object = json.get(field).getAsJsonObject();
         byte[] bytes = object.toString().getBytes();
@@ -71,10 +72,10 @@ public class VerifyClientJsonIntegrity {
         messageDigest.update(bytes);
         byte[] digestBytes = messageDigest.digest();
 
-        Debug.debug(Arrays.toString(digestBytes));
-        Debug.debug("Client Digest: " + Base64.getEncoder().encodeToString(digestBytes));
+        logger.debug(Arrays.toString(digestBytes));
+        logger.debug("Client Digest: " + Base64.getEncoder().encodeToString(digestBytes));
 
-        return Base64.getEncoder().encodeToString(digestBytes).equals(hash);
+        return Arrays.equals(digestBytes, hash);
 
     }
 

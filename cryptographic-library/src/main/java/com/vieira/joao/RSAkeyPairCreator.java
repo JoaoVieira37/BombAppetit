@@ -1,4 +1,4 @@
-package com.g14;
+package com.vieira.joao;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
