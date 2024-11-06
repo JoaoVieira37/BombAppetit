@@ -7,14 +7,15 @@ import com.vieira.joao.model.AppUser;
 import com.vieira.joao.repository.RestaurantInfoRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.vieira.joao.model.RestaurantInfo;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+
+import static com.vieira.joao.AuxFunctions.stringToJsonFile;
+import static com.vieira.joao.Protect.protectFind;
 
 @Service
 @Transactional
@@ -76,10 +77,10 @@ public class RestaurantInfoService {
                 ResponseJSONBuilder.buildRestaurantInfoResponse(restaurantInfo, username)).getAsJsonObject();
 
 
-        AuxFunctions.stringToJsonFile(restaurantInfoObject.toString(), "data.json");
+        stringToJsonFile(restaurantInfoObject.toString(), "data.json");
 
 
-        Protect.protectFind("data.json","data2.json",keyPath,"keys/serverPrivate.key");
+        protectFind("data.json","data2.json",keyPath,"keys/serverPrivate.key");
         String content = new String(Files.readAllBytes(Paths.get("data2.json")));
 
         //DELETE DATA AND DATA2
