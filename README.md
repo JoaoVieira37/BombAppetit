@@ -1,21 +1,8 @@
-# A14 BombAppetit Project Read Me
-
-## Team
-
-| Number | Name              | User                             | E-mail                              |
-| -------|-------------------|----------------------------------| ------------------------------------|
-| 92525  | Miguel Nunes      | <https://github.com/MiguelNunes1043>   | <mailto:miguel.c.nunes@tecnico.ulisboa.pt>   |
-| 99250  | Joao Vieira       | <https://github.com/JoaoVieira37>     | <mailto:joao.miguel.m.vieira@tecnico.ulisboa.pt>     |
-| 93460  | Joao Lima         | <https://github.com/jpvlima> | <mailto:joaolima123@tecnico.ulisboa.pt> |
-
-![Miguel](img/miguel.png) ![JoãoVieira](img/vieira.png)   ![JoãoLima](img/lima.png)
-
-
-
+# BombAppetit README
 
 ## Contents
 
-This repository contains documentation and source code for the *Network and Computer Security (SIRS)* project.
+This repository contains documentation and source code for the *BombAppetit* project.
 
 The [REPORT](REPORT.md) document provides a detailed overview of the key technical decisions and various components of the implemented project.
 It offers insights into the rationale behind these choices, the project's architecture, and the impact of these decisions on the overall functionality and performance of the system.
