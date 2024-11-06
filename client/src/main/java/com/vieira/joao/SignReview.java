@@ -19,7 +19,7 @@ public class SignReview {
         PrivateKey privateKey = AuxFunctions.getPrivateKey(privatekeyname);
 
         //create hash
-        String hash = AuxFunctions.createHash(fieldName, jsonName);
+        byte[] hash = AuxFunctions.createHash(fieldName, jsonName);
 
         //add signature field to json and encrypt using private key
 

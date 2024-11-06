@@ -268,7 +268,7 @@ public class AuxFunctions {
         return false;
     }
 
-    public static String createHash(String field, String jsonfilename) throws Exception{
+    public static byte[] createHash(String field, String jsonfilename) throws Exception{
         final String DIGEST_ALGO = "SHA-256";
 
         FileReader fileReader = new FileReader(jsonfilename);
@@ -281,16 +281,16 @@ public class AuxFunctions {
         messageDigest.update(bytes);
         byte[] digestBytes = messageDigest.digest();
 
-        // TODO: Return just the bytes
+        // TODO: Return just the bytes (fixed only on the client side)
         // The base64 encoded is encrypted and then encoded again (double 64 encoding)
-        return Base64.getEncoder().encodeToString(digestBytes);
+        return digestBytes;
     }
 
-    public static JsonObject createDigitalSignature(String hash, PrivateKey key) throws Exception{
+    public static JsonObject createDigitalSignature(byte[] hash, PrivateKey key) throws Exception{
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
-        byte[] encryptedHashBytes = cipher.doFinal(hash.getBytes());
+        byte[] encryptedHashBytes = cipher.doFinal(hash);
         String encryptedB64Hash = Base64.getEncoder().encodeToString(encryptedHashBytes);
         
         JsonObject jsonObject = new JsonObject();
