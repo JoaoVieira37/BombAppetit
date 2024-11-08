@@ -6,6 +6,8 @@ import com.vieira.joao.*;
 import com.vieira.joao.model.AppUser;
 import com.vieira.joao.repository.RestaurantInfoRepo;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.vieira.joao.model.RestaurantInfo;
@@ -22,6 +24,8 @@ import static com.vieira.joao.Protect.protectFind;
 public class RestaurantInfoService {
     private final RestaurantInfoRepo restaurantInfoRepo;
     private final AppUserService appUserService;
+
+    private static final Logger logger = LoggerFactory.getLogger(RestaurantInfoService.class);
 
     @Autowired
     public RestaurantInfoService(RestaurantInfoRepo restaurantInfoRepo, AppUserService appUserService) {
@@ -64,10 +68,9 @@ public class RestaurantInfoService {
         AppUser user = appUserService.findUserByUsername(username);
         String keyPath = user.getPublicKey();
 
-
         // TODO: Change the verify2 to verify after fixing all the methods relying on verify
         if (!VerifyClientJsonIntegrity.verify(requestBody, keyPath)) {
-            return "{\"ERROR\":\"Nonce or Timestamp do not match\"}";
+            logger.error("Nonce or Timestamp do not match!");
         }
 
         // Get the correct restaurant from the url
@@ -76,7 +79,7 @@ public class RestaurantInfoService {
         JsonObject restaurantInfoObject = JsonParser.parseString(
                 ResponseJSONBuilder.buildRestaurantInfoResponse(restaurantInfo, username)).getAsJsonObject();
 
-
+        // TODO: Change these functions to not use intermediary files
         stringToJsonFile(restaurantInfoObject.toString(), "data.json");
 
 
