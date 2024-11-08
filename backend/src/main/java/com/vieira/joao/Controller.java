@@ -2,9 +2,8 @@ package com.vieira.joao;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.DecimalUtils;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vieira.joao.model.AppUser;
@@ -12,14 +11,19 @@ import com.vieira.joao.model.MealVoucher;
 import com.vieira.joao.model.RestaurantInfo;
 import com.vieira.joao.model.Review;
 import com.vieira.joao.service.*;
+import org.apache.coyote.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
+
+import static com.vieira.joao.AuxFunctions.*;
+import static com.vieira.joao.Protect.protectVouchers;
 
 @RestController
 @RequestMapping("/")
@@ -29,6 +33,8 @@ public class Controller {
     private final MenuEntryService menuEntryService;
     private final ReviewService reviewService;
     private final MealVoucherService mealVoucherService;
+
+    private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
     public Controller(RestaurantInfoService restaurantInfoService, AppUserService appUserService, MenuEntryService menuEntryService, ReviewService reviewService, MealVoucherService mealVoucherService) {
         this.restaurantInfoService = restaurantInfoService;
@@ -42,6 +48,7 @@ public class Controller {
     // TODO: vouchers -> to know the vouchers available to give to another user / should send encrypted json - client should decrypt
     // TODO: give/id -> change app user of voucher with id id
     // TODO: Delete temporary files left behind by the functions
+    // TODO: Redo Error Handling to properly change response results
 
 
     @GetMapping("/info")
@@ -84,7 +91,7 @@ public class Controller {
 
         JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
 
-        AuxFunctions.stringToJsonFile(json, "data.json");
+        stringToJsonFile(json, "data.json");
 
         // Parse the JSON to get the username
         ObjectMapper mapper = new ObjectMapper();
@@ -125,46 +132,44 @@ public class Controller {
     @PostMapping("/vouchers")
     public ResponseEntity<String> getVouchers(@RequestBody String json) throws Exception {
 
+        logger.debug("Called method getVouchers(@RequestBody String json)");
+        logger.debug("Argument 'json': {}", json);
+
+        logger.trace("Parsing argument 'json' to a JsonObject...");
         JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
 
-        AuxFunctions.stringToJsonFile(json, "data.json");
+        logger.trace("Extracting 'username' from argument 'json'...");
+        String username = requestBody.get("info").getAsJsonObject().get("username").getAsString();
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(json);
-        String username = jsonNode.get("info").get("username").asText();
+        logger.trace("Getting {}'s publicKey path from db...", username);
+        String publicKeyPath = appUserService.findUserByUsername(username).getPublicKey();
+        logger.debug("publicKeyPath of {}: {}", username, publicKeyPath);
 
-        String publicPathKey = appUserService.findUserByUsername(username).getPublicKey();
+        logger.trace("Finding all mealVouchers of {}...", username);
+        JsonObject mealVouchers = mealVoucherService.findAllMealVouchersByUserAsJson(username);
+        logger.debug("mealVouchers of {}: {}", username, mealVouchers.toString());
 
-        List<MealVoucher> mealVoucher = mealVoucherService.findAllMealVouchersByUser(username);
-
-
-        if (VerifyClientJsonIntegrity.verify(requestBody, publicPathKey)) {
-
-            SaveJson.saveMealVoucherListAsJson(mealVoucher);
-
-            AppUser user = appUserService.findUserByUsername(username);
+        if (VerifyClientJsonIntegrity.verify(requestBody, publicKeyPath)) {
+            logger.debug("ClientJsonIntegrity verified...");
+            String responseBody;
             try {
-                Protect.protectVouchers("voucher.json", "encrypted-vouchers.json", publicPathKey);
+                JsonObject encryptedMealVouchers = protectVouchers(mealVouchers, publicKeyPath);
+                responseBody = encryptedMealVouchers.toString();
             } catch (Exception e) {
-                e.printStackTrace();
+                responseBody = ResponseJSONBuilder.buildErrorResponse("protectVouchers failed");
+                logger.error(e.getMessage());
             }
-            String content = new String(Files.readAllBytes(Path.of("encrypted-vouchers.json")));
-            System.out.println(content);
 
-
-            //DELETE DATA AND DATA2
-            Files.deleteIfExists(Path.of("data.json"));
-            Files.deleteIfExists(Path.of("voucher.json"));
-            Files.deleteIfExists(Path.of("encrypted-vouchers.json"));
-
-
-
-            return ResponseEntity.ok().body(content);
+            return ResponseEntity
+                    .ok()
+                    .header("Content-Type", "application/json")
+                    .body(responseBody);
         } else {
-
-            Files.deleteIfExists(Path.of("data.json"));
-            String response = "Review not added";
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            logger.debug("ClientJsonIntegrity compromised...");
+            return ResponseEntity
+                    .ok()
+                    .header("Content-Type", "application/json")
+                    .body(ResponseJSONBuilder.buildErrorResponse("Client JSON Integrity compromised"));
         }
     }
 
@@ -173,15 +178,15 @@ public class Controller {
 
         JsonObject requestBody = JsonParser.parseString(json).getAsJsonObject();
 
-        AuxFunctions.stringToJsonFile(json, "data.json");
+        stringToJsonFile(json, "data.json");
 
-        String username = AuxFunctions.getFieldFromJson("info", "username", "data.json");
+        String username = getFieldFromJson("info", "username", "data.json");
         AppUser user = appUserService.findUserByUsername(username);
         String keypath = user.getPublicKey();
 
         if (VerifyClientJsonIntegrity.verify(requestBody, keypath)) {
-            String targetusername = AuxFunctions.getFieldFromJson("info", "targetuser", "data.json");
-            String voucherId = AuxFunctions.getFieldFromJson("info", "voucherID", "data.json");
+            String targetusername = getFieldFromJson("info", "targetuser", "data.json");
+            String voucherId = getFieldFromJson("info", "voucherID", "data.json");
             Integer vid = Integer.valueOf(voucherId);
 
             AppUser targetuser = appUserService.findUserByUsername(targetusername);

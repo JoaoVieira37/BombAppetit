@@ -1,16 +1,19 @@
 package com.vieira.joao;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
-import java.security.*;
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Base64;
+import java.util.Date;
 
 import static com.vieira.joao.AuxFunctions.*;
-import static com.vieira.joao.AuxFunctions.addSecurity;
 
 public class Protect {
 
@@ -21,7 +24,7 @@ public class Protect {
         // Check arguments
         if (args.length < 4) {
             System.err.println("Argument(s) missing!");
-            System.err.printf("Usage: java Protect inputJSONfile outputJSONfile clientPublicKey serverPrivateKey");
+            System.err.println("Usage: java Protect inputJSONfile outputJSONfile clientPublicKey serverPrivateKey");
             return;
         }
 
@@ -49,7 +52,7 @@ public class Protect {
         }
 
         //create copy of input json
-        AuxFunctions.copyFileUsingStream(inputJSONname,outputJSONname);
+        AuxFunctions.copyFileUsingStream(inputJSONname, outputJSONname);
 
         //encrypt fields of voucher on new json
         AuxFunctions.encryptVoucherPublicKey(outputJSONname, clientPublicKey);
@@ -67,71 +70,74 @@ public class Protect {
         AuxFunctions.addSecurity(outputJSONname, digitalSignature);
     }
 
-    public static void protectVouchers(String jsonName, String jsonName2, String publicKeyPath) throws Exception {
+    public static void protectVouchers(String mealVouchersObjectString, String publicKeyPath) throws Exception {
+        protectVouchers(new Gson().fromJson(mealVouchersObjectString, JsonObject.class), publicKeyPath);
+    }
+
+    public static JsonObject protectVouchers(JsonObject mealVouchersObject, String publicKeyPath) throws Exception {
+        logger.trace("Entered protectVouchers...");
 
         PublicKey clientPublicKey = getPublicKey(publicKeyPath);
+        // TODO: Use some kind of key management
         PrivateKey serverPrivateKey = getPrivateKey("keys/serverPrivate.key");
 
-        copyFileUsingStream(jsonName, jsonName2);
-
+        // TODO: Maybe change this encryption to symmetric encryption
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, clientPublicKey);
 
-        try (FileReader fileReader = new FileReader(jsonName2)) {
-            Gson gson = new Gson();
-            JsonObject rootJson = gson.fromJson(fileReader, JsonObject.class);
-            JsonObject mealVoucherObj = rootJson.getAsJsonObject("mealVouchers");
-            JsonArray voucherList = mealVoucherObj.getAsJsonArray("list");
-            for (JsonElement element : voucherList) {
-                JsonObject object = element.getAsJsonObject();
-                String unencryptedCode = object.get("code").getAsString();
-                byte[] encryptedCodeBytes = cipher.doFinal(unencryptedCode.getBytes());
-                String encryptedB64Code = Base64.getEncoder().encodeToString(encryptedCodeBytes);
+        JsonArray voucherList = mealVouchersObject.getAsJsonArray("mealVouchers");
+        String voucherListString = voucherList.toString();
+        byte[] encryptedMealVouchers = cipher.doFinal(voucherListString.getBytes());
+        String encryptedMealVouchersB64 = Base64.getEncoder().encodeToString(encryptedMealVouchers);
 
-                String unencryptedId = object.get("id").getAsString();
-                byte[] encryptedIdBytes = cipher.doFinal(unencryptedId.getBytes());
-                String encryptedB64Id = Base64.getEncoder().encodeToString(encryptedIdBytes);
+        mealVouchersObject.addProperty("mealVouchers", encryptedMealVouchersB64);
+//        for (JsonElement voucher : voucherList) {
+//            JsonObject voucherObject = voucher.getAsJsonObject();
+//
+//            String unencryptedCode = voucherObject.get("code").getAsString();
+//            byte[] encryptedCodeBytes = cipher.doFinal(unencryptedCode.getBytes());
+//            String encryptedB64Code = Base64.getEncoder().encodeToString(encryptedCodeBytes);
+//
+//            String unencryptedId = voucherObject.get("id").getAsString();
+//            byte[] encryptedIdBytes = cipher.doFinal(unencryptedId.getBytes());
+//            String encryptedB64Id = Base64.getEncoder().encodeToString(encryptedIdBytes);
+//
+//            voucherObject.addProperty("id", encryptedB64Id);
+//            voucherObject.addProperty("code", encryptedB64Code);
+//        }
 
-                object.addProperty("id", encryptedB64Id);
-                object.addProperty("code", encryptedB64Code);
-            }
+        Date date = new Date();
+        mealVouchersObject.addProperty("timestamp", String.valueOf(date.getTime()));
 
-            Date date = new Date();
-            mealVoucherObj.addProperty("timestamp", "" + date.getTime());
+        // TODO: Refactor the hashing to an AuxFunction just for Hashing.
+        final String DIGEST_ALGO = "SHA-256";
 
-            try (FileWriter fileWriter = new FileWriter(jsonName2)) {
-                Gson gson2 = new GsonBuilder().setPrettyPrinting().create();
-                gson2.toJson(rootJson, fileWriter);
-            }
+        // Calculates the digest over the Base64 encoded encrypted values
+        byte[] bytes = mealVouchersObject.toString().getBytes();
 
-            final String DIGEST_ALGO = "SHA-256";
+        MessageDigest messageDigest = MessageDigest.getInstance(DIGEST_ALGO);
+        messageDigest.update(bytes);
+        byte[] mealVouchersHash = messageDigest.digest();
 
-            byte[] bytes = mealVoucherObj.toString().getBytes();
+        // TODO: Refactor the publicKey Cryptography to an AuxFunction just for encrypting and decrypting
+        Cipher newCipher = Cipher.getInstance("RSA");
+        newCipher.init(Cipher.ENCRYPT_MODE, serverPrivateKey);
 
-            MessageDigest messageDigest = MessageDigest.getInstance(DIGEST_ALGO);
-            messageDigest.update(bytes);
-            byte[] digestBytes = messageDigest.digest();
-            String mealVouchersHash = Base64.getEncoder().encodeToString(digestBytes);
+        byte[] encryptedHashBytes = newCipher.doFinal(mealVouchersHash);
+        String encryptedB64Hash = Base64.getEncoder().encodeToString(encryptedHashBytes);
 
-            Cipher newCipher = Cipher.getInstance("RSA");
-            newCipher.init(Cipher.ENCRYPT_MODE, serverPrivateKey);
+        // JsonObject digitalSignature = new JsonObject();
+        // digitalSignature.addProperty("hash", encryptedB64Hash);
 
-            // TODO: Remove base64 encoding before encryption
-            byte[] encryptedHashBytes = newCipher.doFinal(mealVouchersHash.getBytes());
-            String encryptedB64Hash = Base64.getEncoder().encodeToString(encryptedHashBytes);
+        // TODO: Change this to include the security in the mealVouchers object, instead of an additional
+        //  security property (maybe not feasible because other jsonObjects may need this additional security property)
+        mealVouchersObject.addProperty("digital_signature", encryptedB64Hash);
+        logger.debug("New secured jsonObject: {}", mealVouchersObject);
 
-            JsonObject digitalSignature = new JsonObject();
-            digitalSignature.addProperty("hash", encryptedB64Hash);
-
-            addSecurity(jsonName2, digitalSignature);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-
+        return mealVouchersObject;
     }
-    public static void protectFind(String inputJSONname, String outputJSONname, String clientPublicKeyName, String serverPrivateKeyName) throws Exception{
+
+    public static void protectFind(String inputJSONname, String outputJSONname, String clientPublicKeyName, String serverPrivateKeyName) throws Exception {
         //get client public and server private keys
         PrivateKey serverPrivateKey = getPrivateKey(serverPrivateKeyName);
         PublicKey clientPublicKey = getPublicKey(clientPublicKeyName);
@@ -141,7 +147,7 @@ public class Protect {
 
         if (!voucherexists) {
             copyFileUsingStream(inputJSONname, outputJSONname);
-            createTimestamp(outputJSONname,"restaurantInfo");
+            createTimestamp(outputJSONname, "restaurantInfo");
             String hash = getRestaurantInfoHash(outputJSONname);
             JsonObject digitalSignature = createJsonDigitalSignatureHash(hash, serverPrivateKey);
             addSecurity(outputJSONname, digitalSignature);
@@ -152,7 +158,7 @@ public class Protect {
         copyFileUsingStream(inputJSONname, outputJSONname);
 
         //create timestamp
-        createTimestamp(outputJSONname,"restaurantInfo");
+        createTimestamp(outputJSONname, "restaurantInfo");
 
         //encrypt fields of voucher on new json
         encryptVoucherPublicKey(outputJSONname, clientPublicKey);

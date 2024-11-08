@@ -1,5 +1,10 @@
 package com.vieira.joao.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.vieira.joao.ResponseJSONBuilder;
 import com.vieira.joao.repository.MealVoucherRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +46,47 @@ public class MealVoucherService {
         }
 
         return mealVouchersUser;
+    }
+
+    /**
+     * @param username
+     * @return JsonObject in the format needed in protectVouchers:
+     * {
+     *   mealVouchers: [
+     *      {
+     *          "id": "1",
+     *          "code": "VOUCHER123",
+     *          "description" : "Some description",
+     *          "restaurant_id": "1"
+     *      }
+     *   ]
+     * }
+     */
+    public JsonObject findAllMealVouchersByUserAsJson(String username) {
+        List<MealVoucher> mealVoucherList = findAllMealVouchersByUser(username);
+
+        JsonObject root = new JsonObject();
+
+        String voucherArray = ResponseJSONBuilder.buildVouchersResponse(mealVoucherList, username);
+        JsonArray vouchersList = JsonParser.parseString(voucherArray).getAsJsonArray();
+
+        for (JsonElement mealVoucher : vouchersList) {
+            JsonObject mealVoucherObj = mealVoucher.getAsJsonObject();
+            for (MealVoucher voucher : mealVoucherList) {
+                if (voucher.getId() == mealVoucherObj.get("id").getAsInt()) {
+                    mealVoucherObj.addProperty("restaurant_id", voucher.getRestaurantInfo().getId());
+                }
+            }
+
+        }
+
+        root.add("mealVouchers", vouchersList);
+
+        return root;
+    }
+
+    public String findAllMealVouchersByUserAsJsonString(String username) {
+        return findAllMealVouchersByUserAsJson(username).toString();
     }
 
     public boolean doesUserHaveVoucherForRestaurant(String username, String restaurant) {

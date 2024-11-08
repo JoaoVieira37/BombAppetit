@@ -69,11 +69,12 @@ public class ResponseJSONBuilder {
         }
 
         if (!restaurantInfo.getMealVoucher().isEmpty()) {
-            restaurantInfoObject.add("mealVoucher",
-                    JsonParser.parseString(
-                            ResponseJSONBuilder.buildVouchersResponse(
-                                    restaurantInfo.getMealVoucher(), user)
-                    ));
+            JsonArray voucherArray = JsonParser.parseString(
+                    ResponseJSONBuilder.buildVouchersResponse(restaurantInfo.getMealVoucher(), user)).getAsJsonArray();
+
+            if (!voucherArray.isEmpty()) {
+                restaurantInfoObject.add("mealVouchers", voucherArray);
+            }
         }
 
         baseJsonObject.add("restaurantInfo", restaurantInfoObject);
@@ -97,7 +98,7 @@ public class ResponseJSONBuilder {
         return new Gson().toJson(baseJsonObject);
     }
 
-    private static String buildReviewsResponse(List<Review> reviews) {
+    public static String buildReviewsResponse(List<Review> reviews) {
 
         JsonArray baseJsonObject = new JsonArray();
 
@@ -112,18 +113,25 @@ public class ResponseJSONBuilder {
         return new Gson().toJson(baseJsonObject);
     }
 
-    private static String buildVouchersResponse(List<MealVoucher> vouchers, String username) {
-
-        JsonObject baseJsonObject = new JsonObject();
+    public static String buildVouchersResponse(List<MealVoucher> vouchers, String username) {
+        JsonArray vouchersList = new JsonArray();
 
         for (MealVoucher voucher : vouchers) {
             if (voucher.getAppUser().getUsername().equals(username)) {
-                baseJsonObject.addProperty("id", voucher.getId());
-                baseJsonObject.addProperty("code", voucher.getCode());
-                baseJsonObject.addProperty("description", voucher.getDescription());
+                JsonObject voucherObject = new JsonObject();
+                voucherObject.addProperty("id", voucher.getId());
+                voucherObject.addProperty("code", voucher.getCode());
+                voucherObject.addProperty("description", voucher.getDescription());
+                vouchersList.add(voucherObject);
             }
         }
 
-        return new Gson().toJson(baseJsonObject);
+        return vouchersList.toString();
+    }
+
+    public static String buildErrorResponse(String reason) {
+        JsonObject baseJsonObject = new JsonObject();
+        baseJsonObject.addProperty("ErrorReason", reason);
+        return baseJsonObject.toString();
     }
 }
