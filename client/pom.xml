@@ -29,9 +29,10 @@
         <unp>unprotect</unp>
 
         <!-- application properties - can be overriden in command line with -D -->
-        <p>com.g14</p>
-        <c>g14</c>
-        <mainclass>${p}.${c}</mainclass>
+
+        <java.version>17</java.version>
+        <mainclass>com.vieira.joao.Application</mainclass>
+
         <!-- arguments are defined in exec plugin -->
     </properties>
 
@@ -93,7 +94,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin.version}</version>
+                <version>1.6.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -101,14 +102,8 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <!-- to prevent deprecation warning: -->
-                    <!-- <killAfter>-1</killAfter> -->
+                <configuration> <!-- to prevent deprecation warning: --> <!-- <killAfter>-1</killAfter> -->
                     <mainClass>${mainclass}</mainClass>
-                    <arguments>
-                        <!-- can be defined here with multiple argument tags,
-                        or in command line with -Dexec.args="arg0 arg1 arg2" -->
-                    </arguments>
                 </configuration>
             </plugin>
             <!-- The Application Assembler plug-in generates scripts for starting Java applications.

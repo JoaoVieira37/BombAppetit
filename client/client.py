@@ -5,6 +5,10 @@ import time
 import os
 import urllib3
 
+
+# -----------------------------------------------------------------------------------------
+# |                          List of functions rewritten in Java                          |
+# -----------------------------------------------------------------------------------------
 def printHelp():
     print("Available commands:")
     print("info - asks the server to send a list of available restaurants")
@@ -13,6 +17,10 @@ def printHelp():
     print("give - creates a request to give")
     print("vouchers - list available vouchers")
     print("quit - quits the application")
+
+# -----------------------------------------------------------------------------------------
+# |                                          END                                          |
+# -----------------------------------------------------------------------------------------
 
 def createFindJson(name, username):
     findInfo = {}
