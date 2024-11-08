@@ -9,7 +9,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Map;
 
 public class ClientService {
 
@@ -34,11 +33,11 @@ public class ClientService {
         }
     }
 
-    public void getInfo() {
-        String endpoint = baseURL + "info";
+    public String getRequest(String endpoint) {
+        String fullURL = baseURL + endpoint;
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
+                .uri(URI.create(fullURL))
                 .GET()
                 .build();
 
@@ -46,14 +45,20 @@ public class ClientService {
 
         if (response == null) {
             System.err.println("ERROR: request was not successful");
-            return;
+            return fullURL;
         }
 
         JsonElement jsonElement = JsonParser.parseString(response);
-        String prettyJsonString = gson.toJson(jsonElement);
 
-        System.out.println(prettyJsonString);
+        return gson.toJson(jsonElement);
+    }
+
+    public String getInfo() {
+        return getRequest("info");
     }
 
 
+    public String getUsers() {
+        return getRequest("users");
+    }
 }

@@ -18,6 +18,26 @@ def printHelp():
     print("vouchers - list available vouchers")
     print("quit - quits the application")
 
+
+def getUserPrivateKey(username):
+    if(username == "user1"):
+        return "keys/user1Private.key"
+    elif(username == "user2"):
+        return "keys/user2Private.key"
+    elif(username == "user3"):
+        return "keys/user3Private.key"
+    else:
+        print("invalid user! current users: user1, user2, user3")
+        exit()
+
+def getUserPublicKey(username):
+    if(username == "user1"):
+        return "keys/user1Public.pub"
+    elif(username == "user2"):
+        return "keys/user2Public.pub"
+    elif(username == "user3"):
+        return "keys/user3Public.pub"
+
 # -----------------------------------------------------------------------------------------
 # |                                          END                                          |
 # -----------------------------------------------------------------------------------------
@@ -122,26 +142,6 @@ def printJsonPretty(responseJson):
     formattedJson = json.dumps(responseJson, indent=2)
     print(formattedJson)
 
-def getUserPrivateKey(username):
-    if(username == "user1"):
-        return "keys/user1Private.key"
-    elif(username == "user2"):
-        return "keys/user2Private.key"
-    elif(username == "user3"):
-        return "keys/user3Private.key"
-    else:
-        print("invalid user! current users: user1, user2, user3")
-        exit()
-
-def getUserPublicKey(username):
-    if(username == "user1"):
-        return "keys/user1Public.pub"
-    elif(username == "user2"):
-        return "keys/user2Public.pub"
-    elif(username == "user3"):
-        return "keys/user3Public.pub"
-
-
 
 
 #Execution start
@@ -167,7 +167,7 @@ while(True):
     
 
     elif(command == "find"):
-        if not (1 <= int(commandFull.split(" ")[1]) <= 2):
+        if not (1 <= int(commandFull.split(" ")[1]) <= 3):
             print("Invalid ID: please choose a valid ID [1, 2]")
         else:
             createFindJson("data.json", username)
