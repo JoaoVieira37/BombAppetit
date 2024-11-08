@@ -31,18 +31,13 @@ public class ResponseJSONBuilder {
 
     public static String buildUsersResponse(List<AppUser> appUserList) {
 
-        JsonObject baseJsonObject = new JsonObject();
         JsonArray usersArray = new JsonArray();
 
         for (AppUser appUser : appUserList) {
-            JsonObject userEntry = new JsonObject();
-            userEntry.addProperty("id", appUser.getId());
-            userEntry.addProperty("name", appUser.getUsername());
-            usersArray.add(userEntry);
+            usersArray.add(appUser.getUsername());
         }
 
-        baseJsonObject.add("users", usersArray);
-        return new Gson().toJson(baseJsonObject);
+        return usersArray.toString();
     }
 
     public static String buildRestaurantInfoResponse(RestaurantInfo restaurantInfo, String user) {
